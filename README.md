@@ -2,5 +2,5 @@
 * Hash input
 * Validate and present Certs
 * Fingerprints
-* Interprete JWT
+* Interpret JWT
 * Present ALL client information

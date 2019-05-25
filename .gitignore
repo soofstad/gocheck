@@ -1,2 +1,4 @@
 bin
 src/gocheck/gocheck
+src/gocheck/debug
+.vscode

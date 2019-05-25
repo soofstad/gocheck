@@ -1,8 +1,10 @@
 package main
 
 import (
-	"fmt"
+	"html/template"
 	"io/ioutil"
+	"log"
+	"net/http"
 )
 
 type Page struct {
@@ -15,6 +17,11 @@ func (p *Page) save() error {
 	return ioutil.WriteFile(filename, p.Body, 0600)
 }
 
+func renderTemplate(writer http.ResponseWriter, tmpl string, page *Page) {
+	templ, _ := template.ParseFiles("tmpl" + ".html")
+	templ.Execute(writer, page)
+}
+
 func loadPage(title string) (*Page, error) {
 	filename := title + ".txt"
 	body, err := ioutil.ReadFile(filename)
@@ -24,9 +31,25 @@ func loadPage(title string) (*Page, error) {
 
 	return &Page{Title: title, Body: body}, nil
 }
-func main()  {
-    p1 := &Page{Title: "TestPage", Body: []byte("This is a sample Page.")}
-    p1.save()
-    p2, _ := loadPage("TestPage")
-    fmt.Println(string(p2.Body))
+
+func viewHandler(writer http.ResponseWriter, request *http.Request) {
+	title := request.URL.Path[len("/view/"):]
+	page, _ := loadPage(title)
+	renderTemplate(writer, "view", page)
+}
+
+func editHandler(writer http.ResponseWriter, request *http.Request) {
+	title := request.URL.Path[len("/edit/"):]
+	page, err := loadPage(title)
+	if err != nil {
+		page = &Page{Title: title}
+	}
+	renderTemplate(writer, "edit", page)
+}
+
+func main() {
+	http.HandleFunc("/view/", viewHandler)
+	http.HandleFunc("/edit/", editHandler)
+	// http.HandleFunc("/save/", saveHandler)
+	log.Fatal(http.ListenAndServe(":8080", nil))
 }
